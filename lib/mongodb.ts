@@ -11,13 +11,12 @@ interface MongooseCache {
   promise: Promise<typeof mongoose> | null;
 }
 
-// Use globalThis for better TypeScript support
 declare global {
   // eslint-disable-next-line no-var
   var mongoose: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
 if (!global.mongoose) {
   global.mongoose = cached;

@@ -61,7 +61,6 @@ export default function HomePage() {
 
       setTokens(data.tokens);
 
-      // Extract unique chains
       const uniqueChains = [...new Set(data.tokens.map((t: Token) => t.chain))];
       setChains(uniqueChains.sort());
     } catch (error) {
@@ -222,7 +221,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Tokens Grid */}
         {!loading && filteredTokens.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 animate-fade-in">
             {filteredTokens.map((token, index) => (

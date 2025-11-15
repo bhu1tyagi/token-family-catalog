@@ -116,7 +116,7 @@ export default function FamilyTreeVisualization({
                 axisLine={{ stroke: '#525252' }}
                 allowDecimals={false}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
               <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                 {typeDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -170,7 +170,7 @@ export default function FamilyTreeVisualization({
                 axisLine={{ stroke: '#525252' }}
                 allowDecimals={false}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
               <Bar dataKey="count" radius={[8, 8, 0, 0]}>
                 {chainDistribution.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />

@@ -8,11 +8,9 @@ async function clearDatabase() {
 
     await connectDB();
 
-    // Delete all tokens
     const tokensDeleted = await Token.deleteMany({});
     console.log(`✓ Deleted ${tokensDeleted.deletedCount} tokens`);
 
-    // Delete all families
     const familiesDeleted = await Family.deleteMany({});
     console.log(`✓ Deleted ${familiesDeleted.deletedCount} families`);
 

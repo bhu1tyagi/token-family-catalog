@@ -1,13 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-// This script reads the seed-data.json file and sends it to the /api/ingest endpoint
-
 async function seedDatabase() {
   try {
     console.log('🌱 Starting database seed...\n');
 
-    // Read seed data
     const seedDataPath = path.join(process.cwd(), 'data', 'seed-data.json');
     const seedData = JSON.parse(fs.readFileSync(seedDataPath, 'utf-8'));
 
@@ -15,13 +12,11 @@ async function seedDatabase() {
     console.log(`   - ${seedData.chains.length} chains`);
     console.log(`   - ${seedData.tokens.length} tokens\n`);
 
-    // Determine the API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const ingestUrl = `${apiUrl}/api/ingest`;
 
     console.log(`🌐 Sending data to ${ingestUrl}...\n`);
 
-    // Send data to ingest endpoint
     const response = await fetch(ingestUrl, {
       method: 'POST',
       headers: {
@@ -55,5 +50,4 @@ async function seedDatabase() {
   }
 }
 
-// Run the seed function
 seedDatabase();

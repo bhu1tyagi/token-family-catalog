@@ -12,7 +12,6 @@ export async function GET(
 
     const { id: familyId } = await params;
 
-    // Get the family
     const family = await Family.findOne({ familyId }).lean();
 
     if (!family) {
@@ -22,18 +21,15 @@ export async function GET(
       );
     }
 
-    // Get all tokens in this family
     const allTokens = await Token.find({ familyId })
       .sort({ type: 1, chain: 1 })
       .lean();
 
-    // Get canonical token
     let canonicalToken = null;
     if (family.canonicalTokenId) {
       canonicalToken = await Token.findById(family.canonicalTokenId).lean();
     }
 
-    // Group tokens by type
     const tokensByType = allTokens.reduce((acc: any, token: any) => {
       if (!acc[token.type]) {
         acc[token.type] = [];
@@ -42,7 +38,6 @@ export async function GET(
       return acc;
     }, {});
 
-    // Group tokens by chain
     const tokensByChain = allTokens.reduce((acc: any, token: any) => {
       if (!acc[token.chain]) {
         acc[token.chain] = [];
@@ -51,7 +46,6 @@ export async function GET(
       return acc;
     }, {});
 
-    // Build relationship graph data for visualization
     const graphData = {
       nodes: allTokens.map((token: any) => ({
         id: token._id.toString(),
@@ -63,7 +57,6 @@ export async function GET(
       edges: [] as any[],
     };
 
-    // Create edges from canonical to other tokens
     if (canonicalToken) {
       allTokens.forEach((token: any) => {
         if (token._id.toString() !== canonicalToken._id.toString()) {
@@ -76,7 +69,6 @@ export async function GET(
       });
     }
 
-    // Statistics
     const stats = {
       totalTokens: allTokens.length,
       byType: Object.keys(tokensByType).reduce((acc: any, type) => {

@@ -13,7 +13,6 @@ export async function GET(
 
     const { id } = await params;
 
-    // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid token ID format' },
@@ -21,7 +20,6 @@ export async function GET(
       );
     }
 
-    // Get the token
     const token = await Token.findById(id).lean();
 
     if (!token) {
@@ -31,7 +29,6 @@ export async function GET(
       );
     }
 
-    // Get family information
     const family = await Family.findOne({ familyId: token.familyId }).lean();
 
     if (!family) {
@@ -41,21 +38,18 @@ export async function GET(
       );
     }
 
-    // Get all related tokens in the same family
     const relatedTokens = await Token.find({
       familyId: token.familyId,
-      _id: { $ne: token._id }, // Exclude current token
+      _id: { $ne: token._id },
     })
       .sort({ type: 1, chain: 1 })
       .lean();
 
-    // Get canonical token if it exists
     let canonicalToken = null;
     if (family.canonicalTokenId) {
       canonicalToken = await Token.findById(family.canonicalTokenId).lean();
     }
 
-    // Group related tokens by type for easier visualization
     const tokensByType = relatedTokens.reduce((acc: any, t: any) => {
       if (!acc[t.type]) {
         acc[t.type] = [];
@@ -64,7 +58,6 @@ export async function GET(
       return acc;
     }, {});
 
-    // Group related tokens by chain
     const tokensByChain = relatedTokens.reduce((acc: any, t: any) => {
       if (!acc[t.chain]) {
         acc[t.chain] = [];

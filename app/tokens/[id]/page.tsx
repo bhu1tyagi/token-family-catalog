@@ -106,7 +106,6 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
       <header className="border-b border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link href="/" className="text-neutral-400 hover:text-neutral-200 mb-2 inline-block text-sm">
@@ -125,10 +124,8 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left Column - Token Details */}
           <div className="lg:col-span-1">
             <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-5">
               <h2 className="text-base font-semibold text-neutral-100 mb-4">Token Details</h2>
@@ -174,7 +171,6 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            {/* Family Info Card */}
             <div className="mt-4 bg-neutral-900 rounded-lg border border-neutral-800 p-5">
               <h2 className="text-base font-semibold text-neutral-100 mb-2">Part of Family</h2>
               <Link
@@ -202,9 +198,7 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Right Column - Relationship Visualization */}
           <div className="lg:col-span-2">
-            {/* Canonical Token */}
             {family.canonicalToken && (
               <div className="bg-blue-500/5 rounded-lg border border-blue-500/20 p-5 mb-4">
                 <h2 className="text-base font-semibold text-neutral-100 mb-3">
@@ -233,7 +227,6 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             )}
 
-            {/* Interactive Token Relationship Graph */}
             <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-5 mb-4">
               <h2 className="text-base font-semibold text-neutral-100 mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +242,6 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
               />
             </div>
 
-            {/* Grouped by Type */}
             <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-5 mb-4">
               <h2 className="text-base font-semibold text-neutral-100 mb-4">
                 Related Tokens by Type
@@ -291,7 +283,6 @@ export default function TokenDetailPage({ params }: { params: Promise<{ id: stri
               )}
             </div>
 
-            {/* Grouped by Chain */}
             <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-5">
               <h2 className="text-base font-semibold text-neutral-100 mb-4">
                 Related Tokens by Chain

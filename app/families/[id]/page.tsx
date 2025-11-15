@@ -107,7 +107,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
       <header className="border-b border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link href="/families" className="text-neutral-400 hover:text-neutral-200 mb-2 inline-block text-sm">
@@ -123,9 +122,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Stats Overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-4">
             <p className="text-2xl font-bold text-neutral-100">{stats.totalTokens}</p>
@@ -149,7 +146,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Canonical Token Highlight */}
         {family.canonicalToken && (
           <div className="bg-blue-500/5 rounded-lg border border-blue-500/20 p-5 mb-6">
             <h2 className="text-base font-semibold text-neutral-100 mb-3">
@@ -186,7 +182,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
-        {/* View Mode Toggle */}
         <div className="bg-neutral-900 rounded-lg border border-neutral-800 p-5 mb-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-neutral-100">All Variants</h2>
@@ -212,7 +207,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
 
-          {/* Grouped by Type View */}
           {viewMode === 'type' && (
             <div className="space-y-6">
               {Object.entries(groupedByType).map(([type, typeTokens]) => (
@@ -255,7 +249,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
             </div>
           )}
 
-          {/* Grouped by Chain View */}
           {viewMode === 'chain' && (
             <div className="space-y-6">
               {Object.entries(groupedByChain).map(([chain, chainTokens]) => (
@@ -299,7 +292,6 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
           )}
         </div>
 
-        {/* Interactive Family Visualizations */}
         <FamilyTreeVisualization tokens={tokens} familyName={family.name} />
       </main>
     </div>

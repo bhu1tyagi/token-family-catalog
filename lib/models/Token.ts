@@ -132,10 +132,7 @@ const TokenSchema = new Schema<IToken>(
   }
 );
 
-// Compound index for unique chain + contract address combination
 TokenSchema.index({ chain: 1, contractAddress: 1 }, { unique: true });
-
-// Index for family queries
 TokenSchema.index({ familyId: 1, type: 1 });
 
 const Token: Model<IToken> = mongoose.models.Token || mongoose.model<IToken>('Token', TokenSchema);

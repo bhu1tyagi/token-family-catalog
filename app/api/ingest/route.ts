@@ -5,12 +5,10 @@ import Family, { IFamily } from '@/lib/models/Family';
 import Chain from '@/lib/models/Chain';
 import crypto from 'crypto';
 
-// Generate deterministic family ID from base asset
 function generateFamilyId(baseAsset: string): string {
   return crypto.createHash('sha256').update(baseAsset.toUpperCase()).digest('hex');
 }
 
-// Determine family name from base asset
 function getFamilyName(baseAsset: string): string {
   const nameMap: Record<string, string> = {
     'ETH': 'Ethereum Family',
@@ -26,7 +24,6 @@ function getFamilyName(baseAsset: string): string {
   return nameMap[baseAsset.toUpperCase()] || `${baseAsset} Family`;
 }
 
-// Generate family description
 function getFamilyDescription(baseAsset: string): string {
   const descMap: Record<string, string> = {
     'ETH': 'All variants of Ethereum including wrapped, staked, and bridged versions across multiple chains.',
@@ -80,7 +77,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // First, insert chains if provided
     if (body.chains && Array.isArray(body.chains)) {
       for (const chainData of body.chains) {
         await Chain.findOneAndUpdate(
@@ -95,13 +91,10 @@ export async function POST(request: NextRequest) {
     let updated = 0;
     const familiesProcessed = new Set<string>();
 
-    // Process each token
     for (const tokenData of body.tokens) {
-      // Generate family ID
       const familyId = generateFamilyId(tokenData.baseAsset);
       familiesProcessed.add(familyId);
 
-      // Create or update token
       const tokenWithFamily = {
         ...tokenData,
         familyId,
@@ -124,30 +117,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update or create families
     const familyIds = Array.from(familiesProcessed);
 
     for (const familyId of familyIds) {
-      // Get all tokens in this family
       const familyTokens = await Token.find({ familyId });
 
       if (familyTokens.length === 0) continue;
 
-      // Find canonical token
       const canonicalToken = familyTokens.find(
         (t) => t.metadata.isCanonical || t.type === TokenType.CANONICAL
       );
 
-      // Get unique chains
       const chains = [...new Set(familyTokens.map((t) => t.chain))];
 
-      // Get base asset from first token
       const baseAsset = familyTokens[0].baseAsset;
 
-      // Get imageUrl from canonical token or first token
       const imageUrl = canonicalToken?.imageUrl || familyTokens[0].imageUrl;
 
-      // Create or update family
       const familyData = {
         familyId,
         baseAsset,

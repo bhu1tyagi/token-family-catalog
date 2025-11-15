@@ -9,30 +9,24 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
 
-    // Build filter query
     const filter: any = {};
 
-    // Filter by baseAsset
     const baseAsset = searchParams.get('baseAsset');
     if (baseAsset) {
       filter.baseAsset = { $regex: baseAsset, $options: 'i' };
     }
 
-    // Pagination
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const skip = parseInt(searchParams.get('skip') || '0');
 
-    // Execute query
     const families = await Family.find(filter)
       .sort({ totalVariants: -1, baseAsset: 1 })
       .limit(limit)
       .skip(skip)
       .lean();
 
-    // Get total count
     const total = await Family.countDocuments(filter);
 
-    // Enrich with canonical token info
     const familiesWithDetails = await Promise.all(
       families.map(async (family) => {
         let canonicalToken = null;

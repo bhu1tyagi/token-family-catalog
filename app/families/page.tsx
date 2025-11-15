@@ -55,7 +55,6 @@ export default function FamiliesPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
       <header className="border-b border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link
@@ -95,7 +94,6 @@ export default function FamiliesPage() {
           </div>
         )}
 
-        {/* Families Grid */}
         {!loading && families.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
             {families.map((family, index) => {
@@ -106,7 +104,6 @@ export default function FamiliesPage() {
                   className="group bg-neutral-900 rounded-lg border border-neutral-800 overflow-hidden hover:border-neutral-700 hover:bg-neutral-800/50 transition-all duration-200"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  {/* Header */}
                   <div className="relative p-5 border-b border-neutral-800 bg-neutral-800/30">
                     <div className="flex items-center justify-between">
                       <div>
@@ -127,7 +124,6 @@ export default function FamiliesPage() {
                     </div>
                   </div>
 
-                  {/* Content */}
                   <div className="p-5">
                     <p className="text-sm text-neutral-400 mb-4 line-clamp-2 min-h-[40px]">
                       {family.description}
@@ -151,7 +147,6 @@ export default function FamiliesPage() {
                       </div>
                     )}
 
-                    {/* Stats */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="bg-neutral-800 rounded-lg p-3 border border-neutral-700">
                         <p className="text-xl font-bold text-neutral-100">
@@ -165,7 +160,6 @@ export default function FamiliesPage() {
                       </div>
                     </div>
 
-                    {/* Chains List */}
                     <div className="flex flex-wrap gap-1.5">
                       {family.chains.slice(0, 3).map((chain) => (
                         <span
@@ -182,7 +176,6 @@ export default function FamiliesPage() {
                       )}
                     </div>
 
-                    {/* Arrow */}
                     <div className="mt-4 pt-4 border-t border-neutral-800 flex items-center justify-end">
                       <span className="text-sm text-blue-400 font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                         View Details
