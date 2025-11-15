@@ -1,128 +1,68 @@
-# Token Family Catalog - Architecture Documentation
+# Architecture Overview
 
-## Overview
-
-The Token Family Catalog is a Next.js application designed to organize and visualize multi-chain token relationships. It groups tokens into "families" based on their underlying asset (e.g., all ETH variants belong to the ETH family) and tracks relationships across different chains and token types.
-
-## Table of Contents
-
-1. [Data Model](#data-model)
-2. [Family Grouping Algorithm](#family-grouping-algorithm)
-3. [Relationship Storage and Querying](#relationship-storage-and-querying)
-4. [Architecture Tradeoffs](#architecture-tradeoffs)
-5. [Handling Ambiguous Cases](#handling-ambiguous-cases)
-6. [Future Improvements](#future-improvements)
-
----
+This document explains the core design decisions behind the Token Family Catalog - how we organize multi-chain tokens into "families" and the tradeoffs we made along the way.
 
 ## Data Model
 
-### Entity-Relationship Diagram
+We use MongoDB with three main collections. The schema is defined using Mongoose models.
 
-```mermaid
-erDiagram
-    FAMILY ||--o{ TOKEN : contains
-    FAMILY {
-        string familyId PK
-        string baseAsset UK
-        string name
-        string description
-        int totalVariants
-        array chains
-        ObjectId canonicalTokenId FK
-    }
+### Tokens Collection
 
-    TOKEN {
-        ObjectId _id PK
-        string symbol
-        string name
-        string chain
-        string contractAddress
-        int decimals
-        string familyId FK
-        string baseAsset
-        enum type
-        array relationships
-        object metadata
-    }
+Individual token instances across chains. Each token document includes:
 
-    CHAIN {
-        string chainId PK
-        string name
-        string nativeCurrency
-    }
-```
+**Core Fields:**
+- `symbol` (string) - Token ticker, e.g. "WETH", "USDC"
+- `name` (string) - Full name, e.g. "Wrapped Ether"
+- `chain` (string) - Network identifier like "ethereum", "arbitrum", "polygon"
+- `contractAddress` (string) - Smart contract address on that chain
+- `decimals` (number) - Precision (usually 18 for ETH-like tokens, 6 for USDC)
 
-### Token Schema
+**Family Grouping:**
+- `baseAsset` (string) - What the token fundamentally represents (ETH, BTC, USDC)
+- `familyId` (string) - SHA-256 hash of baseAsset, used to link related tokens
+- `type` (enum) - One of: CANONICAL, WRAPPED, BRIDGED, DERIVATIVE, SYNTHETIC
 
-The Token model represents individual token instances across different blockchains.
+**Additional Context:**
+- `metadata` (object) - Optional fields like:
+  - `isCanonical` (boolean) - Explicitly mark the "main" token
+  - `bridgeProtocol` (string) - e.g., "Arbitrum Bridge", "Circle CCTP"
+  - `wrappingProtocol` (string) - e.g., "WETH9", "Lido"
 
-**Key Fields:**
-- `symbol`: Token symbol (e.g., "WETH", "USDC")
-- `name`: Full token name
-- `chain`: Blockchain identifier (e.g., "ethereum", "arbitrum")
-- `contractAddress`: Smart contract address
-- `decimals`: Token decimal places
-- `familyId`: **Denormalized** hash-based family identifier
-- `baseAsset`: Underlying asset (e.g., "ETH", "BTC")
-- `type`: Token classification enum
-
-**Token Types:**
-- `CANONICAL`: The original/native token (e.g., ETH on Ethereum)
-- `WRAPPED`: Wrapped version (e.g., WETH)
-- `BRIDGED`: Cross-chain bridged token (e.g., WETH on Arbitrum)
-- `DERIVATIVE`: Staking derivatives or yield-bearing tokens (e.g., stETH, rETH)
-- `SYNTHETIC`: Synthetic/algorithmic representations
-
-**Metadata Object:**
-```typescript
-{
-  isCanonical: boolean,
-  bridgeProtocol?: string,  // e.g., "Arbitrum Bridge", "Circle CCTP"
-  wrappingProtocol?: string // e.g., "WETH9", "Lido"
-}
-```
+The token type is crucial for disambiguation. For example, WETH on Ethereum wraps native ETH (type: WRAPPED), but WETH on Arbitrum is bridged from Ethereum (type: BRIDGED) - same symbol, completely different use cases.
 
 **Indexes:**
-- Compound unique index on `(chain, contractAddress)` - ensures no duplicates
-- Index on `familyId` - fast family lookups
-- Index on `(familyId, type)` - efficient filtering by family and type
-- Individual indexes on `symbol`, `chain`, `baseAsset`, `type`
+- Compound unique index on `(chain, contractAddress)` prevents duplicates
+- Index on `familyId` for fast family lookups
+- Indexes on `symbol`, `type`, `baseAsset` for filtering
 
-### Family Schema
+### Families Collection
 
-The Family model aggregates tokens sharing the same underlying asset.
+Aggregated view of all tokens sharing the same base asset:
 
-**Key Fields:**
-- `familyId`: SHA-256 hash of `baseAsset` (deterministic, unique)
-- `baseAsset`: The underlying asset identifier (unique)
-- `canonicalTokenId`: Reference to the "main" token (usually CANONICAL type)
-- `name`: Human-readable family name
-- `description`: Family description
-- `totalVariants`: Count of tokens in this family
-- `chains`: Array of chains where family exists
+- `familyId` (string) - Primary key, SHA-256 hash of baseAsset
+- `baseAsset` (string) - Unique identifier like "ETH", "BTC", "USDC"
+- `name` (string) - Human-readable name, e.g., "Ethereum Family"
+- `description` (string) - Brief explanation
+- `canonicalTokenId` (ObjectId) - Reference to the "main" token (usually the CANONICAL type)
+- `totalVariants` (number) - Count of tokens in this family
+- `chains` (array) - List of chains where this family exists
 
-**Indexes:**
-- Unique indexes on `familyId` and `baseAsset`
+This is denormalized data - we're storing aggregated info that could technically be computed from the Tokens collection. But pre-computing it makes queries much faster.
 
-### Chain Schema
+### Chains Collection
 
-Simple reference data for blockchain networks.
+Simple reference data for supported blockchains:
+- `chainId` (string) - Unique identifier
+- `name` (string) - Display name
+- `nativeCurrency` (string) - Native token symbol
 
-**Key Fields:**
-- `chainId`: Unique chain identifier
-- `name`: Full chain name
-- `nativeCurrency`: Native token symbol
+## How Family Grouping Works
 
----
+The core idea is simple: tokens with the same underlying asset belong to the same family. All ETH variants (native ETH, WETH, stETH, bridged WETH on L2s) share `baseAsset: "ETH"` and get grouped together.
 
-## Family Grouping Algorithm
+### Family ID Generation
 
-### Core Concept
-
-Tokens are grouped into families based on their `baseAsset` field. The `familyId` is deterministically generated using SHA-256 hashing.
-
-### Algorithm Implementation
+To generate a consistent family ID, we hash the base asset:
 
 ```typescript
 function generateFamilyId(baseAsset: string): string {
@@ -133,441 +73,116 @@ function generateFamilyId(baseAsset: string): string {
 }
 ```
 
-**Why SHA-256?**
-- **Deterministic**: Same baseAsset always produces same familyId
-- **Collision-resistant**: Virtually impossible for different assets to produce same hash
-- **Stable**: FamilyId never changes, even across database resets
-- **Distributed-friendly**: No need for centralized ID generation
+For example, `generateFamilyId("ETH")` always produces the same hash. This means:
+- No auto-increment counters needed
+- Works in distributed systems without coordination
+- Re-running ingest won't create duplicate families
+- IDs are stable across database resets
 
-### Family Creation Process
+### Ingestion Flow
 
-When tokens are ingested via `/api/ingest`:
+When tokens are ingested via the `/api/ingest` endpoint:
 
-1. **Token Processing**
-   - For each token, compute `familyId = generateFamilyId(baseAsset)`
-   - Upsert token with familyId (update if exists, insert if new)
+1. **Process each token:**
+   - Compute `familyId = generateFamilyId(baseAsset)`
+   - Upsert token (update if exists based on chain+address, insert if new)
+   - Store familyId directly on the token document
 
-2. **Family Aggregation**
-   - Group all processed tokens by their familyId
-   - For each family:
-     - Query all tokens with that familyId
-     - Identify canonical token (where `type === CANONICAL`)
-     - Extract unique chains
-     - Count total variants
-     - Upsert family document
+2. **Update families:**
+   - Group processed tokens by familyId
+   - For each family group:
+     - Find all tokens with that familyId in the database
+     - Identify the canonical token (priority: `metadata.isCanonical === true`, fallback: `type === CANONICAL`)
+     - Compute totalVariants count
+     - Extract unique chain list
+     - Upsert the Family document
 
-3. **Canonical Token Selection**
-   - Priority: `metadata.isCanonical === true`
-   - Fallback: `type === TokenType.CANONICAL`
-   - If multiple candidates exist, first one is selected
+This two-phase approach ensures consistency - first we save all the raw token data, then we update the aggregated family metadata.
 
-### Example
+## Querying and Relationships
 
-```
-Input: Token with baseAsset="ETH"
-Step 1: familyId = sha256("ETH") = "cef1233f..."
-Step 2: Assign familyId to token
-Step 3: Update/create Family with familyId="cef1233f..."
-```
+We use implicit relationships rather than explicit graph edges. All tokens in a family are related through their shared `familyId`.
 
----
-
-## Relationship Storage and Querying
-
-### Current Implementation
-
-Relationships are **implicitly derived** rather than explicitly stored in edges.
-
-**Implicit Relationships:**
-- All tokens in a family are related through `familyId`
-- Canonical token acts as the "root" node
-- Type-based relationships (canonical → wrapped, canonical → bridged)
-- Chain-based relationships (same token across different chains)
-
-### Querying Strategy
-
-**1. Find Related Tokens**
+**Finding related tokens:**
 ```typescript
-// Get all tokens in same family
 const relatedTokens = await Token.find({
   familyId: token.familyId,
-  _id: { $ne: token._id } // Exclude self
+  _id: { $ne: token._id }  // exclude self
 });
 ```
 
-**2. Group by Type**
+**Grouping by type:**
 ```typescript
-const tokensByType = relatedTokens.reduce((acc, t) => {
-  if (!acc[t.type]) acc[t.type] = [];
-  acc[t.type].push(t);
-  return acc;
-}, {});
+const wrapped = relatedTokens.filter(t => t.type === 'WRAPPED');
+const bridged = relatedTokens.filter(t => t.type === 'BRIDGED');
+const derivatives = relatedTokens.filter(t => t.type === 'DERIVATIVE');
 ```
 
-**3. Group by Chain**
+**Grouping by chain:**
 ```typescript
-const tokensByChain = relatedTokens.reduce((acc, t) => {
-  if (!acc[t.chain]) acc[t.chain] = [];
-  acc[t.chain].push(t);
-  return acc;
-}, {});
+const arbitrumTokens = relatedTokens.filter(t => t.chain === 'arbitrum');
+const polygonTokens = relatedTokens.filter(t => t.chain === 'polygon');
 ```
 
-### Relationship Schema (Prepared but Unused)
+The Token schema includes a `relationships` array for potential future use (explicit edges like "WETH wraps ETH"), but we're keeping it simple for now. The implicit approach handles 95% of use cases and is much easier to maintain.
 
-The Token schema includes a `relationships` array for future explicit relationship tracking:
+## Reasoning and Tradeoffs
 
-```typescript
-interface IRelationship {
-  type: RelationType;          // WRAPS, BRIDGES_TO, etc.
-  targetTokenId: ObjectId;     // Reference to related token
-}
-```
+**Why denormalize familyId into tokens?**
+MongoDB doesn't have joins, so storing familyId directly on each token means we can query "give me all tokens in family X" with a single index scan. The alternative would be querying by baseAsset, but then we'd need to handle edge cases where baseAsset naming might vary.
 
-**Relationship Types:**
-- `WRAPS` / `WRAPPED_BY`: For wrapper relationships
-- `BRIDGES_TO` / `BRIDGED_FROM`: For cross-chain bridges
-- `DERIVES_FROM` / `DERIVATIVE_OF`: For derivatives
+The downside is data duplication and harder updates if family logic changes (we'd need to update all tokens in a family). But for a read-heavy app this is the right call - queries are fast and simple.
 
-**Why Not Used Currently?**
-- Simpler implementation using implicit relationships
-- Easier to query and maintain
-- Sufficient for current use cases
-- Can be added later for complex relationship tracking
+**Why hash-based IDs instead of auto-increment?**
+Determinism. The same baseAsset always generates the same familyId, which means:
+- No duplicate families even if you ingest the same data twice
+- Works in distributed setups without needing a central ID generator
+- Can generate familyId client-side if needed
+- IDs are stable across database resets/migrations
 
----
+The tradeoff is IDs aren't human-readable (can't tell it's the ETH family from the hash), but that's fine for an internal identifier. The UI uses `baseAsset` and `name` for display anyway.
 
-## Architecture Tradeoffs
+**Why denormalize family metadata?**
+We store `totalVariants` and `chains` in the Family document rather than computing on-the-fly. This means every API call gets instant stats without running aggregation queries.
 
-### 1. Denormalization: Storing `familyId` in Token
+The cost is we have to keep this data in sync during writes. If a new token is added, we need to update both the Token document and the Family document. But read performance justifies the extra write complexity.
 
-**Decision:** Store `familyId` directly in each Token document
+## Handling Edge Cases
 
-**Pros:**
-- Fast family lookups: Single index scan to find all tokens in a family
-- No JOIN operations needed (MongoDB doesn't have native joins)
-- Query performance scales linearly
-- Simplified application logic
+**WETH across chains**
+WETH is tricky because it means different things on different chains:
+- Ethereum WETH: Wraps native ETH (type: WRAPPED, wrappingProtocol: "WETH9")
+- Arbitrum WETH: Bridged from Ethereum (type: BRIDGED, bridgeProtocol: "Arbitrum Bridge")
+- Polygon WETH: Also bridged (type: BRIDGED, bridgeProtocol: "Polygon PoS Bridge")
 
-**Cons:**
-- Data duplication: familyId repeated in every token
-- Update complexity: If family rules change, need to update all tokens
-- Slight storage overhead
+They all have `baseAsset: "ETH"` and belong to the ETH family, but the type field distinguishes their actual purpose. This is why we need both `type` and `metadata` - symbol alone isn't enough.
 
-**Verdict:** ✅ Correct tradeoff for read-heavy application
+**USDC variants**
+Native USDC and legacy USDC.e are both stablecoins backed by USD:
+- Native USDC: Bridged via Circle's CCTP (symbol: "USDC", bridgeProtocol: "Circle CCTP")
+- Legacy USDC: Bridged via older method (symbol: "USDC.e", bridgeProtocol: "Polygon PoS Bridge")
 
-### 2. Hash-Based Family ID Generation
+Both have `baseAsset: "USDC"` but different symbols. The symbol suffix (.e) indicates the bridge variant.
 
-**Decision:** Use SHA-256(baseAsset) instead of auto-increment or UUID
+**Staking derivatives**
+Tokens like stETH, rETH, wstETH all derive from ETH:
+- All belong to ETH family (baseAsset: "ETH")
+- Type: DERIVATIVE
+- Differentiated by wrappingProtocol: "Lido", "Rocket Pool", etc.
 
-**Pros:**
-- **Deterministic**: Same input always produces same ID
-- **Idempotent**: Re-running ingest won't create duplicate families
-- **Distributed-safe**: No coordination needed across instances
-- **Stable**: Family IDs never change
+**BTC has no canonical**
+Since BTC isn't native to EVM chains, there's no truly canonical on-chain BTC. All versions (WBTC, tBTC, cbBTC) are either wrapped or bridged representations. We mark WBTC as canonical by convention since it's the most widely used, but it's technically a wrapped asset.
 
-**Cons:**
-- Less human-readable than sequential IDs
-- Slightly more compute (negligible for modern systems)
-- Cannot easily determine order of creation
+## Cross-Chain Assumptions
 
-**Verdict:** ✅ Determinism and stability outweigh readability concerns
+We make a few key assumptions about how cross-chain assets work:
 
-### 3. Implicit vs Explicit Relationships
+1. **Base asset defines family** - A token's family comes from what it represents, not where it lives. WETH on Arbitrum is part of the ETH family.
 
-**Decision:** Use implicit relationships through familyId, keep explicit relationship schema for future
+2. **Canonical means original chain** - ETH on Ethereum is canonical. USDC on Ethereum (issued by Circle) is canonical. But that canonical token lives on a specific chain.
 
-**Pros:**
-- Simpler data model
-- Easier to query (single collection scan)
-- Lower maintenance overhead
-- Automatically handles new tokens added to family
+3. **Bridge neutrality** - We don't prefer one bridge over another. USDC via CCTP or Polygon PoS Bridge are both just BRIDGED type. The specific protocol goes in metadata if needed.
 
-**Cons:**
-- Cannot represent nuanced relationships (e.g., "WETH wraps ETH")
-- All relationships have equal weight
-- Limited graph traversal capabilities
+4. **Type hierarchy** - There's an implicit ordering: CANONICAL → WRAPPED → BRIDGED → DERIVATIVE. This informs the UI (canonical at center, others radiating out) but isn't enforced in code.
 
-**Verdict:** ✅ Start simple, add complexity when needed
-
-### 4. Family Metadata Denormalization
-
-**Decision:** Store aggregated data (totalVariants, chains) in Family document
-
-**Pros:**
-- Instant access to summary statistics
-- No need to count tokens on every request
-- Faster API responses
-
-**Cons:**
-- Must keep in sync with Token updates
-- Potential for stale data if updates fail
-- Additional write complexity
-
-**Verdict:** ✅ Read performance justifies sync complexity
-
----
-
-## Handling Ambiguous Cases
-
-### Case Study: WETH Across Chains
-
-**The Problem:**
-WETH exists on multiple chains but represents different things:
-- **Ethereum WETH**: Wraps native ETH (type: WRAPPED)
-- **Arbitrum WETH**: Bridged Ethereum WETH (type: BRIDGED)
-- **Polygon WETH**: Bridged Ethereum WETH (type: BRIDGED)
-
-**Current Solution:**
-All WETH variants belong to the ETH family (baseAsset: "ETH") but have different types:
-
-```json
-{
-  "symbol": "WETH",
-  "chain": "ethereum",
-  "baseAsset": "ETH",
-  "type": "WRAPPED",
-  "metadata": {
-    "wrappingProtocol": "WETH9"
-  }
-}
-```
-
-```json
-{
-  "symbol": "WETH",
-  "chain": "arbitrum",
-  "baseAsset": "ETH",
-  "type": "BRIDGED",
-  "metadata": {
-    "bridgeProtocol": "Arbitrum Bridge"
-  }
-}
-```
-
-**Key Insight:** The `type` field differentiates the use case while keeping them in the same family.
-
-### Other Ambiguous Cases
-
-**1. USDC vs USDC.e**
-- Native USDC (Circle CCTP): type = BRIDGED, symbol = "USDC"
-- Legacy bridged USDC: type = BRIDGED, symbol = "USDC.e"
-- Both in USDC family, differentiated by symbol and metadata
-
-**2. Staking Derivatives**
-- stETH, wstETH, cbETH, rETH all derive from ETH
-- All belong to ETH family
-- Type = DERIVATIVE
-- Differentiated by wrappingProtocol in metadata
-
-**3. Wrapped BTC Variants**
-- WBTC, tBTC, cbBTC all in BTC family
-- All have type = WRAPPED (or DERIVATIVE)
-- Differentiated by wrappingProtocol
-
----
-
-## Cross-Chain Asset Assumptions
-
-### Assumption 1: Base Asset Defines Family
-A token's family is determined solely by its underlying asset, not its location or wrapper.
-
-**Implication:** WETH on Arbitrum is part of the ETH family, not a separate family.
-
-### Assumption 2: Canonical Token is Chain-Specific
-The "canonical" token is typically the native/original version on its home chain.
-
-**Examples:**
-- ETH on Ethereum is canonical
-- USDC on Ethereum is canonical (issued by Circle)
-- BTC doesn't have an on-chain canonical (all EVM versions are wrapped)
-
-### Assumption 3: Bridge Neutrality
-The system doesn't prefer one bridge over another. All bridged versions are treated equally.
-
-**Implication:** USDC bridged via CCTP vs Polygon PoS Bridge are both just "BRIDGED" type.
-
-### Assumption 4: Type Hierarchy
-Implicit hierarchy: CANONICAL → WRAPPED → BRIDGED → DERIVATIVE
-
-**Visualization in UI:** Canonical at center, others branching out.
-
----
-
-## Future Improvements
-
-### 1. Explicit Relationship Edges
-
-**Current State:** Implicit relationships via familyId
-**Improvement:** Add explicit directed edges
-
-```typescript
-// Example: WETH → ETH wrapping relationship
-{
-  type: "WRAPS",
-  targetTokenId: ethTokenId
-}
-```
-
-**Benefits:**
-- Graph database-style queries
-- Relationship-specific metadata
-- Multi-hop traversal (e.g., "find all tokens 2 degrees from ETH")
-
-### 2. Temporal Data (Token History)
-
-**Improvement:** Track token metadata changes over time
-
-```typescript
-interface TokenSnapshot {
-  tokenId: ObjectId;
-  timestamp: Date;
-  changedFields: object;
-}
-```
-
-**Use Cases:**
-- Audit trail for contract address changes
-- Historical TVL for derivatives
-- Track bridge migrations (USDC → USDC.e deprecation)
-
-### 3. Liquidity & TVL Integration
-
-**Improvement:** Integrate with DeFi protocols for real-time data
-
-```typescript
-interface TokenMetrics {
-  tokenId: ObjectId;
-  tvl: number;
-  liquidityUSD: number;
-  holders: number;
-  updatedAt: Date;
-}
-```
-
-**Use Cases:**
-- Sort families by TVL
-- Identify most-used variants
-- Warn about low-liquidity versions
-
-### 4. Automated Token Discovery
-
-**Current State:** Manual seed data
-**Improvement:** Automated ingestion via chain indexers
-
-**Approach:**
-- Monitor token factories (ERC20 deployments)
-- Use ML to classify token type
-- Auto-suggest baseAsset based on name/symbol patterns
-
-### 5. Graph Visualization
-
-**Current State:** Simple tree diagram
-**Improvement:** Interactive graph using D3.js or Cytoscape.js
-
-**Features:**
-- Zoom/pan on large families
-- Filter by chain/type
-- Highlight relationship paths
-- Click to expand token details
-
-### 6. Multi-Language Support (i18n)
-
-**Improvement:** Internationalize token names and descriptions
-
-```typescript
-interface LocalizedFamily {
-  name: {
-    en: "Ethereum Family",
-    zh: "以太坊家族",
-    es: "Familia Ethereum"
-  }
-}
-```
-
-### 7. API Rate Limiting & Caching
-
-**Current State:** No rate limiting
-**Improvement:** Add Redis caching and rate limits
-
-**Benefits:**
-- Protect against abuse
-- Faster responses for repeated queries
-- Reduced database load
-
-### 8. Search & Autocomplete
-
-**Improvement:** Full-text search on token symbols/names
-
-**Tech Stack:**
-- MongoDB Atlas Search
-- OR Elasticsearch/Algolia integration
-
-**Features:**
-- Fuzzy matching ("WBTC" matches "Wrapped BTC")
-- Autocomplete dropdown
-- Search across chains
-
-### 9. Token Verification System
-
-**Improvement:** Community-verified token metadata
-
-```typescript
-interface TokenVerification {
-  tokenId: ObjectId;
-  verified: boolean;
-  verifiedBy: string; // ENS, project team, community
-  verificationDate: Date;
-}
-```
-
-**Purpose:** Reduce scam/fake token visibility
-
-### 10. Analytics Dashboard
-
-**Improvement:** Admin dashboard for system insights
-
-**Metrics:**
-- Family growth over time
-- Most-queried tokens
-- Chain distribution
-- Type distribution
-- API usage stats
-
----
-
-## Scalability Considerations
-
-### Current Limits
-- **Tokens:** ~50-100K tokens comfortably
-- **Families:** ~1K families
-- **Concurrent Users:** ~100-500 (single instance)
-
-### Scaling Strategies
-
-**Horizontal Scaling:**
-- Next.js supports multi-instance deployment
-- MongoDB replica sets for read scaling
-- No server-side session state (stateless API)
-
-**Database Optimization:**
-- Sharding by `familyId` for massive datasets
-- Separate read replicas for analytics
-- Archive old token snapshots
-
-**Caching Layers:**
-- Redis for hot data (popular families)
-- CDN for static assets
-- Edge caching for API responses
-
----
-
-## Conclusion
-
-The Token Family Catalog architecture prioritizes:
-1. **Simplicity:** Implicit relationships over complex graphs
-2. **Performance:** Denormalization for fast reads
-3. **Reliability:** Deterministic IDs and idempotent operations
-4. **Extensibility:** Schema supports future enhancements
-
-The system is production-ready for current scale and has clear paths for growth as token ecosystems expand.
+These assumptions work for most DeFi tokens but might need refinement for edge cases like multi-collateral stablecoins or cross-chain native tokens.
