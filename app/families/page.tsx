@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import AIChat from '../components/AIChat';
 
 interface Family {
@@ -10,6 +11,7 @@ interface Family {
   baseAsset: string;
   name: string;
   description: string;
+  imageUrl: string;
   totalVariants: number;
   chains: string[];
   canonicalToken?: {
@@ -113,10 +115,14 @@ export default function FamiliesPage() {
                         </span>
                         <h2 className="text-lg font-semibold text-neutral-100">{family.name}</h2>
                       </div>
-                      <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/20">
-                        <span className="text-xl font-bold text-blue-400">
-                          {family.baseAsset.substring(0, 2)}
-                        </span>
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-neutral-800/50 flex items-center justify-center">
+                        <Image
+                          src={family.imageUrl || '/tokens/default.png'}
+                          alt={family.baseAsset}
+                          width={48}
+                          height={48}
+                          className="object-contain p-1"
+                        />
                       </div>
                     </div>
                   </div>

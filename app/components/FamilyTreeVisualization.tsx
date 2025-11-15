@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Image from 'next/image';
 import {
   BarChart,
   Bar,
@@ -21,6 +22,7 @@ interface Token {
   name: string;
   chain: string;
   type: string;
+  imageUrl: string;
 }
 
 interface FamilyTreeVisualizationProps {
@@ -37,7 +39,9 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const CHAIN_COLORS: Record<string, string> = {
+  bitcoin: '#f7931a',
   ethereum: '#627eea',
+  solana: '#9945ff',
   arbitrum: '#28a0f0',
   polygon: '#8247e5',
   optimism: '#ff0420',
@@ -214,11 +218,14 @@ export default function FamilyTreeVisualization({
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                    style={{ backgroundColor: TYPE_COLORS[token.type] || '#94a3b8' }}
-                  >
-                    {token.symbol.substring(0, 2)}
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-neutral-800/50 flex items-center justify-center">
+                    <Image
+                      src={token.imageUrl || '/tokens/default.png'}
+                      alt={token.symbol}
+                      width={32}
+                      height={32}
+                      className="object-contain p-0.5"
+                    />
                   </div>
                   <div>
                     <p className="font-semibold text-neutral-100 text-sm">{token.symbol}</p>

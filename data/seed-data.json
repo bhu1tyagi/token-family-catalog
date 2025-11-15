@@ -1,9 +1,19 @@
 {
   "chains": [
     {
+      "chainId": "bitcoin",
+      "name": "Bitcoin",
+      "nativeCurrency": "BTC"
+    },
+    {
       "chainId": "ethereum",
       "name": "Ethereum Mainnet",
       "nativeCurrency": "ETH"
+    },
+    {
+      "chainId": "solana",
+      "name": "Solana",
+      "nativeCurrency": "SOL"
     },
     {
       "chainId": "arbitrum",
@@ -33,6 +43,32 @@
   ],
   "tokens": [
     {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "chain": "bitcoin",
+      "contractAddress": "native",
+      "decimals": 8,
+      "baseAsset": "BTC",
+      "type": "CANONICAL",
+      "imageUrl": "/tokens/btc.png",
+      "metadata": {
+        "isCanonical": true
+      }
+    },
+    {
+      "symbol": "SOL",
+      "name": "Solana",
+      "chain": "solana",
+      "contractAddress": "native",
+      "decimals": 9,
+      "baseAsset": "SOL",
+      "type": "CANONICAL",
+      "imageUrl": "/tokens/sol.png",
+      "metadata": {
+        "isCanonical": true
+      }
+    },
+    {
       "symbol": "ETH",
       "name": "Ether",
       "chain": "ethereum",
@@ -40,6 +76,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/eth.png",
       "metadata": {
         "isCanonical": true
       }
@@ -52,6 +89,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "WRAPPED",
+      "imageUrl": "/tokens/weth.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "WETH9"
@@ -65,6 +103,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "DERIVATIVE",
+      "imageUrl": "/tokens/wsteth.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Lido"
@@ -78,6 +117,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "DERIVATIVE",
+      "imageUrl": "/tokens/steth.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Lido"
@@ -91,6 +131,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "DERIVATIVE",
+      "imageUrl": "/tokens/cbeth.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Coinbase"
@@ -104,6 +145,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "DERIVATIVE",
+      "imageUrl": "/tokens/reth.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Rocket Pool"
@@ -117,6 +159,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/weth.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -130,6 +173,7 @@
       "decimals": 18,
       "baseAsset": "ETH",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/weth.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -143,8 +187,9 @@
       "decimals": 8,
       "baseAsset": "BTC",
       "type": "WRAPPED",
+      "imageUrl": "/tokens/wbtc.png",
       "metadata": {
-        "isCanonical": true,
+        "isCanonical": false,
         "wrappingProtocol": "BitGo"
       }
     },
@@ -156,6 +201,7 @@
       "decimals": 18,
       "baseAsset": "BTC",
       "type": "WRAPPED",
+      "imageUrl": "/tokens/tbtc.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Threshold Network"
@@ -169,6 +215,7 @@
       "decimals": 8,
       "baseAsset": "BTC",
       "type": "WRAPPED",
+      "imageUrl": "/tokens/cbbtc.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "Coinbase"
@@ -182,6 +229,7 @@
       "decimals": 8,
       "baseAsset": "BTC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/wbtc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -195,6 +243,7 @@
       "decimals": 8,
       "baseAsset": "BTC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/wbtc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -208,6 +257,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": true
       }
@@ -220,6 +270,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Circle CCTP"
@@ -233,6 +284,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Circle CCTP"
@@ -246,6 +298,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Circle CCTP"
@@ -259,6 +312,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge (Legacy)"
@@ -272,6 +326,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge (Legacy)"
@@ -285,6 +340,7 @@
       "decimals": 6,
       "baseAsset": "USDC",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdc.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Circle CCTP"
@@ -298,6 +354,7 @@
       "decimals": 6,
       "baseAsset": "USDT",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/usdt.png",
       "metadata": {
         "isCanonical": true
       }
@@ -310,6 +367,7 @@
       "decimals": 6,
       "baseAsset": "USDT",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdt.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -323,6 +381,7 @@
       "decimals": 6,
       "baseAsset": "USDT",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdt.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -336,6 +395,7 @@
       "decimals": 18,
       "baseAsset": "USDT",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/usdt.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Binance Bridge"
@@ -349,6 +409,7 @@
       "decimals": 18,
       "baseAsset": "DAI",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/dai.png",
       "metadata": {
         "isCanonical": true
       }
@@ -361,6 +422,7 @@
       "decimals": 18,
       "baseAsset": "DAI",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/dai.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -374,6 +436,7 @@
       "decimals": 18,
       "baseAsset": "DAI",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/dai.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -387,6 +450,7 @@
       "decimals": 18,
       "baseAsset": "DAI",
       "type": "DERIVATIVE",
+      "imageUrl": "/tokens/sdai.png",
       "metadata": {
         "isCanonical": false,
         "wrappingProtocol": "MakerDAO Savings Rate"
@@ -400,6 +464,7 @@
       "decimals": 18,
       "baseAsset": "LINK",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/link.png",
       "metadata": {
         "isCanonical": true
       }
@@ -412,6 +477,7 @@
       "decimals": 18,
       "baseAsset": "LINK",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/link.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -425,6 +491,7 @@
       "decimals": 18,
       "baseAsset": "LINK",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/link.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -438,6 +505,7 @@
       "decimals": 18,
       "baseAsset": "UNI",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/uni.png",
       "metadata": {
         "isCanonical": true
       }
@@ -450,6 +518,7 @@
       "decimals": 18,
       "baseAsset": "UNI",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/uni.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -463,6 +532,7 @@
       "decimals": 18,
       "baseAsset": "UNI",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/uni.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"
@@ -476,6 +546,7 @@
       "decimals": 18,
       "baseAsset": "AAVE",
       "type": "CANONICAL",
+      "imageUrl": "/tokens/aave.png",
       "metadata": {
         "isCanonical": true
       }
@@ -488,6 +559,7 @@
       "decimals": 18,
       "baseAsset": "AAVE",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/aave.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Arbitrum Bridge"
@@ -501,6 +573,7 @@
       "decimals": 18,
       "baseAsset": "AAVE",
       "type": "BRIDGED",
+      "imageUrl": "/tokens/aave.png",
       "metadata": {
         "isCanonical": false,
         "bridgeProtocol": "Polygon PoS Bridge"

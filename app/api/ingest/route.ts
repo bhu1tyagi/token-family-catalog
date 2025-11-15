@@ -15,6 +15,7 @@ function getFamilyName(baseAsset: string): string {
   const nameMap: Record<string, string> = {
     'ETH': 'Ethereum Family',
     'BTC': 'Bitcoin Family',
+    'SOL': 'Solana Family',
     'USDC': 'USD Coin Family',
     'USDT': 'Tether Family',
     'DAI': 'DAI Family',
@@ -29,7 +30,8 @@ function getFamilyName(baseAsset: string): string {
 function getFamilyDescription(baseAsset: string): string {
   const descMap: Record<string, string> = {
     'ETH': 'All variants of Ethereum including wrapped, staked, and bridged versions across multiple chains.',
-    'BTC': 'All variants of Bitcoin wrapped and bridged to various EVM chains.',
+    'BTC': 'Native Bitcoin and all wrapped/bridged variants across multiple blockchains.',
+    'SOL': 'Native Solana and all wrapped/bridged variants across multiple blockchains.',
     'USDC': 'Circle\'s USD Coin across multiple chains, including native and bridged versions.',
     'USDT': 'Tether\'s USD stablecoin across multiple blockchains.',
     'DAI': 'MakerDAO\'s decentralized stablecoin and its derivatives.',
@@ -48,6 +50,7 @@ interface TokenInput {
   decimals: number;
   baseAsset: string;
   type: TokenType;
+  imageUrl: string;
   metadata: {
     isCanonical: boolean;
     bridgeProtocol?: string;
@@ -141,6 +144,9 @@ export async function POST(request: NextRequest) {
       // Get base asset from first token
       const baseAsset = familyTokens[0].baseAsset;
 
+      // Get imageUrl from canonical token or first token
+      const imageUrl = canonicalToken?.imageUrl || familyTokens[0].imageUrl;
+
       // Create or update family
       const familyData = {
         familyId,
@@ -148,6 +154,7 @@ export async function POST(request: NextRequest) {
         canonicalTokenId: canonicalToken?._id || null,
         name: getFamilyName(baseAsset),
         description: getFamilyDescription(baseAsset),
+        imageUrl,
         totalVariants: familyTokens.length,
         chains,
       };

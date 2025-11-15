@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import AIChat from './components/AIChat';
 
 interface Token {
@@ -14,6 +15,7 @@ interface Token {
   familyId: string;
   familyName: string;
   contractAddress: string;
+  imageUrl: string;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -25,9 +27,11 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 const CHAIN_COLORS: Record<string, string> = {
+  bitcoin: 'bg-orange-500/10 text-orange-400',
   ethereum: 'bg-neutral-800 text-neutral-300',
+  solana: 'bg-purple-500/10 text-purple-400',
   arbitrum: 'bg-blue-500/10 text-blue-400',
-  polygon: 'bg-purple-500/10 text-purple-400',
+  polygon: 'bg-violet-500/10 text-violet-400',
   optimism: 'bg-red-500/10 text-red-400',
   base: 'bg-indigo-500/10 text-indigo-400',
   bsc: 'bg-yellow-500/10 text-yellow-400',
@@ -230,8 +234,14 @@ export default function HomePage() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 font-semibold text-sm border border-blue-500/20">
-                      {token.symbol.substring(0, 2)}
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-neutral-800/50 flex items-center justify-center">
+                      <Image
+                        src={token.imageUrl || '/tokens/default.png'}
+                        alt={token.symbol}
+                        width={40}
+                        height={40}
+                        className="object-contain p-1"
+                      />
                     </div>
                     <div>
                       <h3 className="font-semibold text-neutral-100 text-base group-hover:text-blue-400 transition-colors">

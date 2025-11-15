@@ -37,6 +37,7 @@ export interface IToken extends Document {
   familyId: string;
   baseAsset: string;
   type: TokenType;
+  imageUrl: string;
   relationships: IRelationship[];
   metadata: IMetadata;
   createdAt: Date;
@@ -111,6 +112,11 @@ const TokenSchema = new Schema<IToken>(
       enum: Object.values(TokenType),
       required: true,
       index: true,
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+      default: '/tokens/default.png',
     },
     relationships: {
       type: [RelationshipSchema],

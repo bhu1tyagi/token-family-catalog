@@ -6,6 +6,7 @@ export interface IFamily extends Document {
   canonicalTokenId: mongoose.Types.ObjectId | null;
   name: string;
   description: string;
+  imageUrl: string;
   totalVariants: number;
   chains: string[];
   createdAt: Date;
@@ -38,6 +39,11 @@ const FamilySchema = new Schema<IFamily>(
     description: {
       type: String,
       required: true,
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+      default: '/tokens/default.png',
     },
     totalVariants: {
       type: Number,
